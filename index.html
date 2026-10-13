@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#edf1f7">
+<title>GitHub Push</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light dark;--bg:#edf1f7;--sheet:#fff;--ink:#17213b;--mute:#5d6b86;--line:#dbe2ee;--field:#f6f8fc;--acc:#2b59ff;--acc-ink:#fff;--ring:rgba(43,89,255,.22);--dir:#b87400;--dir-bg:#fff0cc;--file:#0b78bd;--file-bg:#dcf0fd;--zip:#7240dc;--zip-bg:#ebe2ff;--ok:#0a7d4f;--err:#c0261b;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1220;--sheet:#161d30;--ink:#e8edf8;--mute:#93a0ba;--line:#273250;--field:#1c2540;--acc:#6f8cff;--acc-ink:#0b1022;--ring:rgba(111,140,255,.3);--dir:#ffc247;--dir-bg:#3a2f12;--file:#6cc4ff;--file-bg:#10344c;--zip:#b79bff;--zip-bg:#2b2150;--ok:#6ee7a8;--err:#ff8f86}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Hind Siliguri",system-ui,-apple-system,"Noto Sans Bengali",sans-serif;-webkit-font-smoothing:antialiased}
+main{max-width:520px;margin:0 auto;padding:18px 14px 0}
+header{display:flex;align-items:center;gap:12px;margin:2px 2px 18px}
+.mark{flex:none;width:44px;height:44px;border-radius:13px;background:var(--acc);color:var(--acc-ink);display:grid;place-items:center}
+.mark svg{width:22px;height:22px}
+h1{font-size:21px;line-height:1.25;margin:0;font-weight:700}
+header p{margin:0;font-size:13.5px;color:var(--mute)}
+.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+h2{font-size:15px;margin:0 0 12px;font-weight:700}
+label{display:block;font-size:13.5px;font-weight:500;color:var(--mute);margin:14px 0 6px}
+.lblrow{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:6px}
+.lblrow label{margin:0}
+.lnk{flex:none;font-size:13.5px;font-weight:600;color:var(--acc);text-decoration:none;border-bottom:1px solid currentColor}
+.hint{font-size:12.5px;color:var(--mute);margin:6px 0 0}
+input[type=text],input[type=password]{width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:10px;background:var(--field);color:var(--ink);font:inherit;font-size:16px}
+input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px var(--ring)}
+button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.row{display:flex;gap:10px}
+.row>*{flex:1;min-width:0}
+.how{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font-size:13.5px;color:var(--mute)}
+.how summary{cursor:pointer;font-weight:600;color:var(--ink)}
+.how ul{margin:8px 0 0;padding-left:18px}
+.how li{margin:5px 0}
+.how a{color:var(--acc);font-weight:600}
+.chk{display:flex;gap:10px;align-items:center;font-size:14.5px;font-weight:400;color:var(--ink);margin:14px 0 0}
+.chk input{width:18px;height:18px;margin:0;accent-color:var(--acc)}
+.pick{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pick button{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 6px 12px;background:var(--field);border:1px solid var(--line);border-radius:12px;color:var(--ink);font:inherit;font-weight:600;font-size:14.5px;cursor:pointer}
+.pick button:active{background:var(--line)}
+.ic{display:grid;place-items:center;width:38px;height:38px;border-radius:10px;flex:none;font-style:normal}
+.ic svg{width:20px;height:20px}
+.ic.folder{background:var(--dir-bg);color:var(--dir)}
+.ic.file{background:var(--file-bg);color:var(--file)}
+.ic.zip{background:var(--zip-bg);color:var(--zip)}
+#lst{list-style:none;margin:12px 0 0;padding:0}
+#lst li{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:14.5px}
+#lst .ic{width:32px;height:32px;border-radius:9px}
+#lst .ic svg{width:17px;height:17px}
+#lst li span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#lst li small{color:var(--mute);white-space:nowrap;font-size:12.5px}
+#lst button{width:32px;height:32px;padding:0;border:0;background:transparent;color:var(--mute);border-radius:8px;font-size:16px;cursor:pointer}
+#lst button:active{color:var(--err)}
+#clr{margin-top:4px;width:100%;padding:11px;background:transparent;border:0;border-top:1px solid var(--line);color:var(--err);font:inherit;font-weight:600;font-size:14px;cursor:pointer}
+#bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;display:none;margin:0 2px 12px}
+#bar i{display:block;height:100%;width:0;background:var(--acc);transition:width .2s}
+#log{font-size:14.5px;white-space:pre-wrap;word-break:break-word;margin:0 0 14px;padding:12px 14px;border-radius:12px;background:var(--sheet);border:1px solid var(--line);border-left-width:4px;color:var(--ink)}
+#log:empty{display:none}
+#log.ok{color:var(--ok);border-left-color:var(--ok)}
+#log.err{color:var(--err);border-left-color:var(--err)}
+.foot{font-size:12.5px;color:var(--mute);margin:0 2px 16px}
+.dock{position:sticky;bottom:0;display:flex;align-items:center;gap:12px;margin:0 -14px;padding:12px 14px calc(12px + env(safe-area-inset-bottom,0px));background:var(--sheet);border-top:1px solid var(--line)}
+#sum{flex:1;min-width:0;font-size:13.5px;line-height:1.35;color:var(--mute)}
+#go{flex:none;padding:13px 26px;border:0;border-radius:12px;background:var(--acc);color:var(--acc-ink);font:inherit;font-weight:700;font-size:16px;cursor:pointer}
+#go:disabled{background:var(--line);color:var(--mute);cursor:default}
+#go:active:not(:disabled){filter:brightness(.92)}
+body.drag main{outline:2px dashed var(--acc);outline-offset:-6px}
+@media (prefers-reduced-motion:reduce){#bar i{transition:none}}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M5 20h14"/></svg></div>
+  <div><h1>GitHub-এ একসাথে push</h1><p>ফোন থেকে folder, file বা ZIP upload করুন</p></div>
+</header>
+
+<section class="sheet">
+  <h2>Repository ও Token</h2>
+  <div class="lblrow">
+    <label for="tok">Personal Access Token</label>
+    <a class="lnk" href="https://github.com/settings/tokens/new?scopes=repo&description=GitHub%20Push" target="_blank" rel="noopener noreferrer">Token বানান</a>
+  </div>
+  <input id="tok" type="password" autocomplete="off" placeholder="ghp_… বা github_pat_…">
+  <p class="hint">repo / Contents: write permission লাগবে</p>
+  <details class="how">
+    <summary>Token কীভাবে বানাবেন</summary>
+    <ul>
+      <li><a href="https://github.com/settings/tokens/new?scopes=repo&description=GitHub%20Push" target="_blank" rel="noopener noreferrer">Classic token</a>: <b>repo</b> আগে থেকে টিক করা থাকবে, শুধু Generate চাপুন।</li>
+      <li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">Fine-grained token</a>: Repository access-এ আপনার repo বাছুন, Permissions → Contents → <b>Read and write</b>।</li>
+      <li>Token শুধু একবারই দেখা যায়, তাই কপি করে এখানে বসিয়ে নিন।</li>
+    </ul>
+  </details>
+
+  <label for="repo">Repository (owner/repo)</label>
+  <input id="repo" type="text" autocapitalize="none" autocorrect="off" placeholder="username/my-project">
+  <div class="row">
+    <div><label for="br">Branch</label><input id="br" type="text" autocapitalize="none" value="main"></div>
+    <div><label for="sub">Repo-র ভেতরে folder</label><input id="sub" type="text" autocapitalize="none" placeholder="ঐচ্ছিক, যেমন: src"></div>
+  </div>
+  <label for="msg">Commit message</label>
+  <input id="msg" type="text" value="Upload from mobile">
+  <label class="chk"><input id="rem" type="checkbox"> এই ফোনে token ও repo মনে রাখো</label>
+</section>
+
+<section class="sheet">
+  <h2>ফাইল</h2>
+  <div class="pick">
+    <button id="pickDir"><i class="ic folder" data-ic="folder"></i>Folder</button>
+    <button id="pickFiles"><i class="ic file" data-ic="file"></i>File</button>
+    <button id="pickZip"><i class="ic zip" data-ic="zip"></i>ZIP</button>
+  </div>
+  <input id="dirIn" type="file" webkitdirectory directory multiple hidden>
+  <input id="fileIn" type="file" multiple hidden>
+  <input id="zipIn" type="file" accept=".zip,application/zip" hidden>
+  <p class="hint">একটা picker-এ folder আর file একসাথে বাছা যায় না। একটা একটা করে যোগ করুন, সব জমা হবে, তারপর <b>একবারেই</b> push হবে। ZIP দিলে ভেতরের সব ফাইল খুলে যোগ হবে।</p>
+  <ul id="lst"></ul>
+  <button id="clr" style="display:none">তালিকা মুছো</button>
+  <label class="chk"><input id="strip" type="checkbox" checked> Folder-এর নিজের নাম বাদ দাও (ভেতরের ফাইল সরাসরি root-এ যাবে)</label>
+</section>
+
+<div id="bar"><i></i></div>
+<div id="log" role="status"></div>
+<p class="foot">.git, node_modules ও .DS_Store নিজে থেকেই বাদ যায়। ৫০ MB-এর বড় ফাইল বাদ দেওয়া হয়।</p>
+
+<div class="dock">
+  <div id="sum">কিছু বাছাই করা হয়নি।</div>
+  <button id="go" disabled>Push করো</button>
+</div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const SKIP=/(^|\/)(\.git|node_modules|\.DS_Store)(\/|$)/;
+const MAX=50*1024*1024;
+let items=[]; // {file, rel, fromDir}
+const SV=p=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+const ICON={
+  folder:SV('<path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'),
+  file:SV('<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/>'),
+  zip:SV('<rect x="3" y="4" width="18" height="5" rx="1.2"/><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9"/><path d="M10 13h4"/>')
+};
+document.querySelectorAll('[data-ic]').forEach(e=>{e.innerHTML=ICON[e.dataset.ic]});
+
+// saved settings
+try{const s=JSON.parse(localStorage.getItem('ghpush')||'null');if(s){$('tok').value=s.t||'';$('repo').value=s.r||'';$('br').value=s.b||'main';$('rem').checked=true}}catch(e){}
+
+function add(entries){
+  const seen=new Set(items.map(i=>i.rel));
+  for(const e of entries){
+    if(SKIP.test(e.rel)||seen.has(e.rel))continue;
+    seen.add(e.rel);items.push(e);
+  }
+  render();
+}
+function render(){
+  const sz=items.reduce((a,i)=>a+i.file.size,0);
+  $('sum').textContent=items.length?`মোট ${items.length} টি ফাইল · ${(sz/1048576).toFixed(2)} MB`:'কিছু বাছাই করা হয়নি।';
+  $('go').disabled=!items.length;
+  $('clr').style.display=items.length?'block':'none';
+  const g=new Map();
+  for(const i of items){const x=g.get(i.grp)||{n:0,t:i.kind};x.n++;g.set(i.grp,x)}
+  const ul=$('lst');ul.textContent='';
+  for(const [name,x] of g){
+    const li=document.createElement('li');
+    const ic=document.createElement('i');ic.className='ic '+x.t;ic.innerHTML=ICON[x.t]||ICON.file;
+    const sp=document.createElement('span');sp.textContent=name;
+    const sm=document.createElement('small');sm.textContent=x.t==='file'?'':x.n+' ফাইল';
+    const bt=document.createElement('button');bt.textContent='✕';bt.setAttribute('aria-label',name+' বাদ দাও');
+    bt.onclick=()=>{items=items.filter(i=>i.grp!==name);render()};
+    li.append(ic,sp,sm,bt);ul.append(li);
+  }
+}
+$('pickDir').onclick=()=>$('dirIn').click();
+$('pickFiles').onclick=()=>$('fileIn').click();
+$('pickZip').onclick=()=>$('zipIn').click();
+$('dirIn').onchange=e=>{
+  add([...e.target.files].map(f=>{const r=f.webkitRelativePath||f.name;return{file:f,rel:r,fromDir:r.includes('/'),grp:r.split('/')[0],kind:r.includes('/')?'folder':'file'}}));
+  e.target.value='';
+};
+$('fileIn').onchange=e=>{
+  add([...e.target.files].map(f=>({file:f,rel:f.name,fromDir:false,grp:f.name,kind:'file'})));
+  e.target.value='';
+};
+$('zipIn').onchange=async e=>{
+  const z=e.target.files[0];e.target.value='';if(!z)return;
+  if(!window.JSZip){say('ZIP খোলার library লোড হয়নি — ইন্টারনেট দেখুন।','err');return}
+  try{
+    say('ZIP খোলা হচ্ছে…');
+    const zip=await JSZip.loadAsync(z),out=[];
+    for(const [path,ent] of Object.entries(zip.files)){
+      if(ent.dir)continue;
+      const blob=await ent.async('blob');
+      out.push({file:new File([blob],path.split('/').pop()),rel:path,fromDir:path.includes('/'),grp:z.name,kind:'zip'});
+    }
+    add(out);say('');
+  }catch(err){say('ZIP খোলা যায়নি: '+err.message,'err')}
+};
+// drag & drop (desktop): folders and files together
+async function walk(en,out,top){
+  if(en.isFile){
+    const f=await new Promise(r=>en.file(r));
+    const rel=en.fullPath.replace(/^\//,'');
+    out.push({file:f,rel,fromDir:rel.includes('/'),grp:top,kind:rel.includes('/')?'folder':'file'});
+  }else if(en.isDirectory){
+    const rd=en.createReader();let batch;
+    do{batch=await new Promise(r=>rd.readEntries(r));for(const c of batch)await walk(c,out,top)}while(batch.length);
+  }
+}
+addEventListener('dragover',e=>{e.preventDefault();document.body.classList.add('drag')});
+addEventListener('dragleave',e=>{if(!e.relatedTarget)document.body.classList.remove('drag')});
+addEventListener('drop',async e=>{
+  e.preventDefault();document.body.classList.remove('drag');
+  const ens=[...e.dataTransfer.items].map(i=>i.webkitGetAsEntry&&i.webkitGetAsEntry()).filter(Boolean),out=[];
+  for(const en of ens)await walk(en,out,en.name);
+  add(out);
+});
+$('clr').onclick=()=>{items=[];render();$('log').textContent=''};
+
+function say(t,c){const d=$('log');d.className=c||'';d.textContent=t}
+function prog(p){$('bar').style.display='block';$('bar').firstElementChild.style.width=Math.round(p*100)+'%'}
+
+async function api(m,p,b){
+  const r=await fetch('https://api.github.com'+p,{method:m,headers:{Authorization:'Bearer '+$('tok').value.trim(),Accept:'application/vnd.github+json','Content-Type':'application/json'},body:b?JSON.stringify(b):undefined});
+  let j=null;try{j=await r.json()}catch(e){}
+  if(!r.ok){const e=new Error((j&&j.message)||('HTTP '+r.status));e.status=r.status;throw e}
+  return j;
+}
+function b64(buf){
+  const u=new Uint8Array(buf);let s='';
+  for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));
+  return btoa(s);
+}
+function targetPath(it){
+  let p=it.rel;
+  if(it.fromDir&&$('strip').checked&&p.includes('/'))p=p.slice(p.indexOf('/')+1);
+  const sub=$('sub').value.trim().replace(/^\/+|\/+$/g,'');
+  return sub?sub+'/'+p:p;
+}
+
+$('go').onclick=async()=>{
+  const tok=$('tok').value.trim(),repo=$('repo').value.trim().replace(/^https?:\/\/github\.com\//,'').replace(/\.git$/,'').replace(/\/$/,''),br=$('br').value.trim()||'main',msg=$('msg').value.trim()||'Upload from mobile';
+  if(!tok||!/^[^/\s]+\/[^/\s]+$/.test(repo)){say('Token আর repo (owner/repo) ঠিকভাবে দিন।','err');return}
+  if($('rem').checked)localStorage.setItem('ghpush',JSON.stringify({t:tok,r:repo,b:br}));else localStorage.removeItem('ghpush');
+
+  const list=items.filter(i=>i.file.size<=MAX).map(i=>({it:i,path:targetPath(i)}));
+  const big=items.length-list.length;
+  if(!list.length){say('Push করার মতো ফাইল নেই।','err');return}
+  $('go').disabled=true;prog(0);
+  try{
+    say('Branch খোঁজা হচ্ছে…');
+    let base=null,baseTree=null,newRef=false,rest=list;
+    try{
+      base=(await api('GET',`/repos/${repo}/git/ref/heads/${encodeURIComponent(br)}`)).object.sha;
+    }catch(e){
+      if(e.status!==404&&e.status!==409)throw e;
+      // branch missing: base on default branch, or bootstrap an empty repo
+      const info=await api('GET',`/repos/${repo}`);
+      try{
+        base=(await api('GET',`/repos/${repo}/git/ref/heads/${encodeURIComponent(info.default_branch)}`)).object.sha;
+        newRef=true;
+      }catch(e2){
+        if(e2.status!==404&&e2.status!==409)throw e2;
+        say('Repo খালি — প্রথম ফাইল দিয়ে শুরু হচ্ছে…');
+        const first=list[0];
+        await api('PUT',`/repos/${repo}/contents/${first.path.split('/').map(encodeURIComponent).join('/')}`,{message:msg,branch:br,content:b64(await first.it.file.arrayBuffer())});
+        rest=list.slice(1);
+        if(!rest.length){prog(1);say(`✅ সম্পন্ন: https://github.com/${repo}`,'ok');return}
+        base=(await api('GET',`/repos/${repo}/git/ref/heads/${encodeURIComponent(br)}`)).object.sha;
+      }
+    }
+    baseTree=(await api('GET',`/repos/${repo}/git/commits/${base}`)).tree.sha;
+
+    // upload blobs, 4 at a time
+    const entries=new Array(rest.length);let done=0,idx=0;
+    async function worker(){
+      while(idx<rest.length){
+        const k=idx++,r=rest[k];
+        const blob=await api('POST',`/repos/${repo}/git/blobs`,{content:b64(await r.it.file.arrayBuffer()),encoding:'base64'});
+        entries[k]={path:r.path,mode:'100644',type:'blob',sha:blob.sha};
+        done++;prog(done/rest.length*0.9);say(`Upload হচ্ছে… ${done}/${rest.length}`);
+      }
+    }
+    await Promise.all([worker(),worker(),worker(),worker()]);
+
+    say('Commit বানানো হচ্ছে…');
+    const tree=await api('POST',`/repos/${repo}/git/trees`,{base_tree:baseTree,tree:entries});
+    const commit=await api('POST',`/repos/${repo}/git/commits`,{message:msg,tree:tree.sha,parents:[base]});
+    if(newRef)await api('POST',`/repos/${repo}/git/refs`,{ref:'refs/heads/'+br,sha:commit.sha});
+    else await api('PATCH',`/repos/${repo}/git/refs/heads/${encodeURIComponent(br)}`,{sha:commit.sha});
+    prog(1);
+    say(`✅ ${list.length} টি ফাইল push হয়েছে${big?` (${big} টি বড় ফাইল বাদ)`:''}\nhttps://github.com/${repo}/tree/${br}`,'ok');
+  }catch(e){
+    say('❌ '+e.message+(e.status===401?'\nToken ভুল বা মেয়াদ শেষ।':e.status===403||e.status===404?'\nToken-এ ওই repo-র write permission আছে কি না দেখুন।':''),'err');
+  }finally{$('go').disabled=!items.length}
+};
+</script>
+</body>
+</html>
