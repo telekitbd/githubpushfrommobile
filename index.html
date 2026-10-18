@@ -21,8 +21,11 @@ label{display:block;font-size:14px;margin:12px 0 6px;color:#dbe5f5}input,select{
 <p class="tiny">Token শুধু এই ব্রাউজারের JavaScript থেকে GitHub API-তে পাঠানো হবে; কোনো সার্ভারে পাঠানো হয় না। তবু নিরাপত্তার জন্য Fine-grained token-এ শুধু নির্দিষ্ট repository-র Contents: Read and write permission দিন। কাজ শেষে token revoke করুন।</p>
 <div class="grid"><div><label for="owner">GitHub username / owner</label><input id="owner" placeholder="your-username"></div><div><label for="repo">Repository name</label><input id="repo" placeholder="my-project"></div></div>
 <div class="grid"><div><label for="branch">Branch</label><input id="branch" value="main"></div><div><label for="pathprefix">Folder prefix (optional)</label><input id="pathprefix" placeholder="ফাঁকা রাখলে root"></div></div>
+<label style="display:flex;gap:10px;align-items:center;margin-top:14px"><input id="remember" type="checkbox" checked style="width:auto"> এই ব্রাউজারে token, username ও repo সেভ রাখুন</label>
+<p class="tiny">সেভ করা তথ্য শুধু এই ডিভাইসের ব্রাউজারে থাকে। অন্যের বা শেয়ার করা ডিভাইসে এটি চালু রাখবেন না।</p>
 <button id="push">ZIP extract করে GitHub-এ Push</button>
 <button id="check" class="secondary">Repository access test</button>
+<button id="clearsaved" class="secondary">সেভ করা তথ্য মুছুন</button>
 <div id="status" class="status">প্রস্তুত। ZIP, token, username ও repository পূরণ করুন।</div></section>
 <section class="card"><h2>২. সহজ নিয়ম</h2><div class="steps">
 <div class="step"><div class="num">1</div><div><strong>GitHub repository তৈরি</strong><span><a href="https://github.com/new" target="_blank" rel="noopener" style="color:var(--blue)">github.com/new</a> খুলে repository তৈরি করুন। Public বা Private যেকোনোটি চলবে।</span></div></div>
@@ -42,6 +45,27 @@ async function api(url, cfg, options={}) {
  if(!r.ok) throw new Error((data.message||r.statusText)+' (HTTP '+r.status+')');
  return data;
 }
+const FIELDS=['token','owner','repo','branch','pathprefix'], KEY='ghpush_saved_v1';
+function saveFields(){
+ try{
+  if(!$('remember').checked){localStorage.removeItem(KEY);return}
+  const d={};FIELDS.forEach(f=>d[f]=$(f).value);localStorage.setItem(KEY,JSON.stringify(d));
+ }catch(e){}
+}
+function loadFields(){
+ try{
+  const d=JSON.parse(localStorage.getItem(KEY)||'null');
+  if(d){FIELDS.forEach(f=>{if(d[f]!=null)$(f).value=d[f]});msg('সেভ করা তথ্য লোড হয়েছে। এখন শুধু ZIP বাছুন।','ok')}
+ }catch(e){}
+}
+FIELDS.forEach(f=>$(f).addEventListener('input',saveFields));
+$('remember').addEventListener('change',saveFields);
+$('clearsaved').onclick=()=>{
+ try{localStorage.removeItem(KEY)}catch(e){}
+ FIELDS.forEach(f=>{$(f).value=f==='branch'?'main':''});
+ msg('সেভ করা তথ্য মুছে ফেলা হয়েছে।');
+};
+loadFields();
 $('check').onclick=async()=>{
  const c=config(); if(!c.token||!c.owner||!c.repo){msg('Token, owner এবং repository পূরণ করুন।','warn');return}
  $('check').disabled=true;
