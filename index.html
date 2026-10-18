@@ -45,43 +45,69 @@ async function api(url, cfg, options={}) {
 $('check').onclick=async()=>{
  const c=config(); if(!c.token||!c.owner||!c.repo){msg('Token, owner এবং repository পূরণ করুন।','warn');return}
  $('check').disabled=true;
- try{const r=await api('/repos/'+encodeURIComponent(c.owner)+'/'+encodeURIComponent(c.repo),c);msg('Access OK: '+r.full_name+'\\nDefault branch: '+r.default_branch,'ok')}
+ try{const r=await api('/repos/'+encodeURIComponent(c.owner)+'/'+encodeURIComponent(c.repo),c);msg('Access OK: '+r.full_name+'\nDefault branch: '+r.default_branch,'ok')}
  catch(e){msg('Access test failed: '+e.message,'warn')}finally{$('check').disabled=false}
 };
 $('push').onclick=async()=>{
  const c=config(), file=$('zipfile').files[0];
  if(!file||!c.token||!c.owner||!c.repo){msg('ZIP, token, owner এবং repository পূরণ করুন।','warn');return}
- if(!window.JSZip){msg('ZIP library load হয়নি। ইন্টারনেট সংযোগ চেক করে পেজ reload করুন।','warn');return}
+ if(!window.JSZip){msg('ZIP library load হয়নি। ইন্টারনেট সংযোগ চেক করে পেজ reload করুন।','warn');return}
  $('push').disabled=true;
+ const R='/repos/'+encodeURIComponent(c.owner)+'/'+encodeURIComponent(c.repo);
  try{
    msg('Repository যাচাই করা হচ্ছে…');
-   const repo=await api('/repos/'+encodeURIComponent(c.owner)+'/'+encodeURIComponent(c.repo),c);
+   const repo=await api(R,c);
    const branch=c.branch||repo.default_branch||'main';
-   let zip=await JSZip.loadAsync(file);
+   const zip=await JSZip.loadAsync(file);
    const entries=Object.values(zip.files).filter(f=>!f.dir && !f.name.startsWith('__MACOSX/') && !f.name.split('/').pop().startsWith('.DS_Store'));
-   if(!entries.length) throw new Error('ZIP-এ কোনো ফাইল পাওয়া যায়নি।');
-   // Strip one common enclosing directory if every file has the same top-level folder.
+   if(!entries.length) throw new Error('ZIP-এ কোনো ফাইল পাওয়া যায়নি।');
    const parts=entries.map(e=>e.name.split('/'));
    const roots=new Set(parts.map(p=>p[0]));
    const strip=roots.size===1 && parts.every(p=>p.length>1) ? [...roots][0]+'/' : '';
-   let done=0, failed=[];
-   for(const entry of entries){
-     let path=entry.name.startsWith(strip)?entry.name.slice(strip.length):entry.name;
-     if(!path) continue;
-     if(c.prefix) path=c.prefix+'/'+path;
-     try{
-       const content=await entry.async('base64');
-       let sha;
-       try{const old=await api('/repos/'+encodeURIComponent(c.owner)+'/'+encodeURIComponent(c.repo)+'/contents/'+path.split('/').map(encodeURIComponent).join('/')+'?ref='+encodeURIComponent(branch),c);sha=old.sha}catch(e){if(!String(e.message).includes('HTTP 404')) throw e}
-       const body={message:'Add/update '+path,content,branch,...(sha?{sha}:{})};
-       await api('/repos/'+encodeURIComponent(c.owner)+'/'+encodeURIComponent(c.repo)+'/contents/'+path.split('/').map(encodeURIComponent).join('/'),c,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-       done++;
-       msg('Push চলছে… '+done+'/'+entries.length+'\\nশেষ ফাইল: '+path);
-     }catch(e){failed.push(path+': '+e.message)}
+   const items=entries.map(e=>{let p=e.name.startsWith(strip)?e.name.slice(strip.length):e.name;if(p&&c.prefix)p=c.prefix+'/'+p;return {entry:e,path:p}}).filter(i=>i.path);
+   const J={'Content-Type':'application/json'};
+   const post=(u,b)=>api(R+u,c,{method:'POST',headers:J,body:JSON.stringify(b)});
+
+   // ১) Branch-এর বর্তমান commit খুঁজি
+   let baseCommit=null, baseTree=null, first=0;
+   try{
+     const ref=await api(R+'/git/ref/heads/'+encodeURIComponent(branch).replace(/%2F/g,'/'),c);
+     baseCommit=ref.object.sha;
+     baseTree=(await api(R+'/git/commits/'+baseCommit,c)).tree.sha;
+   }catch(e){
+     if(!/HTTP (404|409)/.test(e.message)) throw e;
+     // খালি repo/নতুন branch: প্রথম ফাইল দিয়ে branch তৈরি (শুধু এই ক্ষেত্রে একটি বাড়তি commit)
+     msg('Branch পাওয়া যায়নি, প্রথম ফাইল দিয়ে তৈরি করা হচ্ছে…');
+     const f0=items[0];
+     await api(R+'/contents/'+f0.path.split('/').map(encodeURIComponent).join('/'),c,{method:'PUT',headers:J,body:JSON.stringify({message:'Initial commit',content:await f0.entry.async('base64'),branch})});
+     const ref=await api(R+'/git/ref/heads/'+encodeURIComponent(branch).replace(/%2F/g,'/'),c);
+     baseCommit=ref.object.sha;
+     baseTree=(await api(R+'/git/commits/'+baseCommit,c)).tree.sha;
+     first=1;
    }
-   if(failed.length) msg('আংশিক push হয়েছে: '+done+'/'+entries.length+'\\nসমস্যা:\\n'+failed.slice(0,8).join('\\n')+(failed.length>8?'\\n… আরও '+(failed.length-8)+'টি':''),'warn');
-   else msg('সফল! '+done+'টি ফাইল push হয়েছে।\\nRepository: https://github.com/'+c.owner+'/'+c.repo+'\\nএখন repository খুলে ফাইলগুলো দেখুন।','ok');
- }catch(e){msg('Push ব্যর্থ: '+e.message+'\\nRepository-তে branch আগে তৈরি আছে কি না এবং token permission চেক করুন।','warn')}
+   const list=items.slice(first);
+   if(!list.length){msg('সফল! ১টি ফাইল push হয়েছে।','ok');return}
+
+   // ২) সব ফাইল blob হিসেবে আপলোড (এতে কোনো workflow চলে না)
+   const tree=new Array(list.length); let done=0, next=0;
+   async function worker(){
+     while(next<list.length){
+       const i=next++, it=list[i];
+       const content=await it.entry.async('base64');
+       const b=await post('/git/blobs',{content,encoding:'base64'});
+       tree[i]={path:it.path,mode:'100644',type:'blob',sha:b.sha};
+       done++; msg('ফাইল আপলোড হচ্ছে… '+done+'/'+list.length+'\nশেষ ফাইল: '+it.path);
+     }
+   }
+   await Promise.all([worker(),worker(),worker(),worker()]);
+
+   // ৩) একটি tree + একটি commit + branch আপডেট = মাত্র একবার workflow trigger
+   msg('একটি commit তৈরি করা হচ্ছে…');
+   const t=await post('/git/trees',{base_tree:baseTree,tree});
+   const cm=await post('/git/commits',{message:'Upload '+list.length+' files from ZIP',tree:t.sha,parents:[baseCommit]});
+   await api(R+'/git/refs/heads/'+encodeURIComponent(branch).replace(/%2F/g,'/'),c,{method:'PATCH',headers:J,body:JSON.stringify({sha:cm.sha})});
+   msg('সফল! '+items.length+'টি ফাইল একটি commit-এ push হয়েছে।\nRepository: https://github.com/'+c.owner+'/'+c.repo+'\nGitHub Actions-এ শুধু একটি run হওয়ার কথা।','ok');
+ }catch(e){msg('Push ব্যর্থ: '+e.message+'\nBranch-এর নাম ও token permission (Contents: Read and write) চেক করুন।','warn')}
  finally{$('push').disabled=false}
 };
 </script></body></html>
