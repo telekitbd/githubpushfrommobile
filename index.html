@@ -72,6 +72,42 @@ $('check').onclick=async()=>{
  try{const r=await api('/repos/'+encodeURIComponent(c.owner)+'/'+encodeURIComponent(c.repo),c);msg('Access OK: '+r.full_name+'\nDefault branch: '+r.default_branch,'ok')}
  catch(e){msg('Access test failed: '+e.message,'warn')}finally{$('check').disabled=false}
 };
+function showActionLink(url,label){
+ let a=$('actionlink');
+ if(!a){a=document.createElement('a');a.id='actionlink';a.className='btn';a.target='_blank';a.rel='noopener';status.after(a)}
+ a.href=url;a.textContent=label;
+}
+// Push-এর পর repository নামের সাথে মিল থাকা workflow (অ্যাকশন) খুঁজে তার run পেজে নিয়ে যায়
+async function goToAction(c,R,sha){
+ const base='https://github.com/'+c.owner+'/'+c.repo+'/actions';
+ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+ const norm=s=>(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+ try{
+  const wf=(await api(R+'/actions/workflows?per_page=100',c)).workflows||[];
+  const want=norm(c.repo);
+  const w=wf.find(x=>norm(x.name)===want)||wf.find(x=>norm(x.name).includes(want)||want.includes(norm(x.name)))||wf.find(x=>norm((x.path||'').split('/').pop().replace(/\.ya?ml$/,''))===want);
+  if(!w){showActionLink(base,'Actions পেজ খুলুন');msg(status.textContent+'\n"'+c.repo+'" নামের কোনো workflow পাওয়া যায়নি; সব Actions দেখুন।','warn');return}
+  const wfUrl=base+'/workflows/'+(w.path||'').split('/').pop();
+  showActionLink(wfUrl,'"'+w.name+'" অ্যাকশন খুলুন');
+  let run=null;
+  for(let i=0;i<12&&!run;i++){
+   await sleep(2500);
+   const runs=(await api(R+'/actions/workflows/'+w.id+'/runs?per_page=5&head_sha='+sha,c)).workflow_runs||[];
+   run=runs[0]||null;
+   msg('সফল! Commit হয়েছে।\nঅ্যাকশন "'+w.name+'" এর run খোঁজা হচ্ছে… ('+(i+1)+'/12)','ok');
+  }
+  if(run){
+   showActionLink(run.html_url,'"'+w.name+'" run দেখুন');
+   msg('সফল! Commit হয়েছে এবং অ্যাকশন "'+w.name+'" চালু হয়েছে।\nStatus: '+run.status,'ok');
+   window.open(run.html_url,'_blank','noopener');
+  }else{
+   msg('Commit হয়েছে। অ্যাকশন "'+w.name+'" এর run এখনো দেখা যায়নি; নিচের বাটনে চাপুন।','warn');
+  }
+ }catch(e){
+  showActionLink(base,'Actions পেজ খুলুন');
+  msg(status.textContent+'\nঅ্যাকশন খুঁজতে সমস্যা: '+e.message+'\n(Token-এ Actions: Read permission লাগতে পারে।)','warn');
+ }
+}
 $('push').onclick=async()=>{
  const c=config(), file=$('zipfile').files[0];
  if(!file||!c.token||!c.owner||!c.repo){msg('ZIP, token, owner এবং repository পূরণ করুন।','warn');return}
@@ -130,7 +166,8 @@ $('push').onclick=async()=>{
    const t=await post('/git/trees',{base_tree:baseTree,tree});
    const cm=await post('/git/commits',{message:'Upload '+list.length+' files from ZIP',tree:t.sha,parents:[baseCommit]});
    await api(R+'/git/refs/heads/'+encodeURIComponent(branch).replace(/%2F/g,'/'),c,{method:'PATCH',headers:J,body:JSON.stringify({sha:cm.sha})});
-   msg('সফল! '+items.length+'টি ফাইল একটি commit-এ push হয়েছে।\nRepository: https://github.com/'+c.owner+'/'+c.repo+'\nGitHub Actions-এ শুধু একটি run হওয়ার কথা।','ok');
+   msg('সফল! '+items.length+'টি ফাইল একটি commit-এ push হয়েছে।\nRepository: https://github.com/'+c.owner+'/'+c.repo+'\nঅ্যাকশন খোঁজা হচ্ছে…','ok');
+   await goToAction(c,R,cm.sha);
  }catch(e){msg('Push ব্যর্থ: '+e.message+'\nBranch-এর নাম ও token permission (Contents: Read and write) চেক করুন।','warn')}
  finally{$('push').disabled=false}
 };
